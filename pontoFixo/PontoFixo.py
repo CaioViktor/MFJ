@@ -13,7 +13,11 @@ class PontoFixo:
 				self.setInteira(self.inteira + 1)
 				self.setFracao(fracao - self.maxFra)
 			else:
-				self.fracao = fracao
+				if(fracao < 0):
+					self.setInteira(self.inteira - 1)
+					self.setFracao(self.maxFra + fracao)#fracao ja e negativa
+				else:
+					self.fracao = fracao
 		except Exception as e:
 			raise e
 
@@ -28,6 +32,8 @@ class PontoFixo:
 				raise Exception("Erro valor atribuido "+str(self)+" e menor que o valor minimo permitido 0")
 
 	def __str__(self):
+		if(self.underflow or self.overflow):
+			return "Este ponto fixo nao e valido, pois sofre de Overflow: "+ str(self.overflow) +" ou  Underflow: "+str(self.underflow)
 		fracao = str(self.fracao)
 		if len(fracao) < self.comprimentoFracao:
 			fracao = '0'*(self.comprimentoFracao - len(fracao)) + fracao
@@ -69,13 +75,16 @@ class PontoFixo:
 
 	def __add__(self,b):
 		return self.add(self,b)
+
+
 	@staticmethod
 	def sub(a,b,precisaoInteria=16,precisaoFracao=10):
 		try:
 			return PontoFixo(a.inteira-b.inteira,a.fracao-b.fracao,precisaoInteria,precisaoFracao)
 		except Exception as e:
 			raise e;
-
+	def __sub__(self,b):
+		return self.sub(self,b)
 
 def bitsToLimite(bits):
 	valorMaximo = 2**bits
@@ -98,10 +107,10 @@ def teste():
 	# ent = str(raw_input('Entre com o valor:\n'))
 
 
-	ponto1 = PontoFixo.strToPontoFixo('1.02')
-	ponto2 = PontoFixo.strToPontoFixo('3.08')
+	ponto1 = PontoFixo.strToPontoFixo('2.02')
+	ponto2 = PontoFixo.strToPontoFixo('0.3')
 
-	ponto3=ponto1+ponto2
+	ponto3=ponto1-ponto2
 	print(str(ponto3)+"\n")
 
 if __name__=="__main__":
