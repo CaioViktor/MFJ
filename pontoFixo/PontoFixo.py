@@ -25,7 +25,7 @@ class PontoFixo:
 		self.inteira = inteira#apenas para guardar o valor, mesmo que nao seja valido
 		if(inteira >= self.maxInt):
 			self.overflow = True
-			raise Exception("Erro valor atribuido "+str(self)+" e maior que o valor maximo permitido "+self.maxInt+"."+maxFra)
+			raise Exception("Erro valor atribuido "+str(self)+" e maior que o valor maximo permitido "+str(self.maxInt)+"."+str(self.maxFra-1))
 		else:
 			if(inteira < 0):
 				self.underflow = True
@@ -107,10 +107,10 @@ def teste():
 	# ent = str(raw_input('Entre com o valor:\n'))
 
 
-	ponto1 = PontoFixo.strToPontoFixo('2.02')
+	ponto1 = PontoFixo.strToPontoFixo('65535.7')
 	ponto2 = PontoFixo.strToPontoFixo('0.3')
 
-	ponto3=ponto1-ponto2
+	ponto3=ponto1+ponto2
 	print(str(ponto3)+"\n")
 
 if __name__=="__main__":
