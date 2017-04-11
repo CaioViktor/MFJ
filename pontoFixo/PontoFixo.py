@@ -52,6 +52,14 @@ class PontoFixo:
 		self.overflow = False
 		self.underflow = False
 
+	def arredondar(self):
+		try:
+			if self.fracao >= self.maxFra:
+				return PontoFixo(self.inteira,self.maxFra)
+			else :
+				return PontoFixo(self.inteira,0)
+		except Exception as e:
+			raise e
 
 	@staticmethod
 	def zero():
@@ -71,7 +79,7 @@ class PontoFixo:
 		try:
 			return PontoFixo(a.inteira+b.inteira,a.fracao+b.fracao,precisaoInteria,precisaoFracao)
 		except Exception as e:
-			raise e;
+			raise e
 
 	def __add__(self,b):
 		return self.add(self,b)
@@ -82,9 +90,31 @@ class PontoFixo:
 		try:
 			return PontoFixo(a.inteira-b.inteira,a.fracao-b.fracao,precisaoInteria,precisaoFracao)
 		except Exception as e:
-			raise e;
+			raise e
+
 	def __sub__(self,b):
 		return self.sub(self,b)
+
+	@staticmethod
+	def mul(a,b,precisaoInteria=16,precisaoFracao=10):
+		try:
+			acumulador = PontoFixo(0,0,precisaoInteria,precisaoFracao)
+			for i in range(0,b.inteira):
+				acumulador = PontoFixo.add(acumulador,a,precisaoInteria,precisaoFracao)
+			#somar a multiplicação da parte fracionada
+			return acumulador
+		except Exception as e:
+			raise e
+
+	def __mul__(self,b):
+		return self.mul(self,b)
+
+	@staticmethod
+	def mulArredondada(a,b,precisaoInteria=16,precisaoFracao=10):
+		try:
+			return (a*b).arredondar
+		except Exception as e:
+			raise e
 
 def bitsToLimite(bits):
 	valorMaximo = 2**bits
@@ -102,15 +132,18 @@ def stringToDecimal(string,comprimento):
 		ret = string[:len(string)] + '0'* (comprimento - len(string))
 		return int(ret)
 
+def comprimento(numero):
+	return len(str(numero))
 
 def teste():
 	# ent = str(raw_input('Entre com o valor:\n'))
 
 
-	ponto1 = PontoFixo.strToPontoFixo('65535.7')
-	ponto2 = PontoFixo.strToPontoFixo('0.3')
+	ponto1 = PontoFixo.strToPontoFixo('2.2')
+	ponto2 = PontoFixo.strToPontoFixo('1.3')
 
-	ponto3=ponto1+ponto2
+	print(str(ponto1)+"*"+str(ponto2)+"\n")
+	ponto3=ponto1*ponto2
 	print(str(ponto3)+"\n")
 
 if __name__=="__main__":
