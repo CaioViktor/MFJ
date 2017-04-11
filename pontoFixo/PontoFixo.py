@@ -54,7 +54,7 @@ class PontoFixo:
 
 	def arredondar(self):
 		try:
-			if self.fracao >= self.maxFra:
+			if self.fracao >= (self.maxFra/2):
 				return PontoFixo(self.inteira,self.maxFra)
 			else :
 				return PontoFixo(self.inteira,0)
@@ -101,8 +101,10 @@ class PontoFixo:
 			acumulador = PontoFixo(0,0,precisaoInteria,precisaoFracao)
 			for i in range(0,b.inteira):
 				acumulador = PontoFixo.add(acumulador,a,precisaoInteria,precisaoFracao)
-			#somar a multiplicação da parte fracionada
-			return acumulador
+			fracoes = ((b.fracao * a.fracao)/bitsToLimite(precisaoFracao)) + b.fracao * a.inteira
+			fracao =PontoFixo(0,fracoes,precisaoInteria,precisaoFracao)
+
+			return acumulador + fracao
 		except Exception as e:
 			raise e
 
@@ -110,12 +112,76 @@ class PontoFixo:
 		return self.mul(self,b)
 
 	@staticmethod
-	def mulArredondada(a,b,precisaoInteria=16,precisaoFracao=10):
+	def div(a,b,precisaoInteria=16,precisaoFracao=10):
 		try:
-			return (a*b).arredondar
+			cont = 0
+			while True:
+				pontoAux = PontoFixo(cont+1,0)
+				ponto = pontoAux * b
+				if PontoFixo.maior(ponto,a):
+					break
+				cont+=1
+			parteInteira = PontoFixo(cont,0)
+			multi = parteInteira * b
+			resto = a - multi
+			cont = 0
+			while True:
+				pontoAux = PontoFixo(0,cont+1)
+				ponto = pontoAux * b
+				if PontoFixo.maior(ponto,resto):
+					break
+				cont+=1
+			fracao = PontoFixo(0,cont)
+			return parteInteira+fracao
 		except Exception as e:
 			raise e
 
+	def __div__(self,b):
+		return self.div(self,b)
+
+	@staticmethod
+	def mod(a,b,precisaoInteria=16,precisaoFracao=10):
+		try:
+			cont = 0
+			while True:
+				pontoAux = PontoFixo(cont+1,0)
+				ponto = pontoAux * b
+				if PontoFixo.maior(ponto,a):
+					break
+				cont+=1
+			parteInteira = PontoFixo(cont,0)
+			multi = parteInteira * b
+			resto = a - multi
+			return resto
+		except Exception as e:
+			raise e
+
+	def __mod__(self,b):
+		return self.mod(self,b)
+
+	@staticmethod
+	def mulArredondada(a,b,precisaoInteria=16,precisaoFracao=10):
+		try:
+			return (a*b).arredondar()
+		except Exception as e:
+			raise e
+
+	@staticmethod
+	def igual(a,b):
+		if a.inteira == b.inteira and a.fracao == b.fracao:
+			return True
+		return False
+	@staticmethod
+	def maior(a,b):
+		if (a.inteira > b.inteira) or (a.inteira == b.inteira and a.fracao > b.fracao):
+			return True
+		return False
+
+	@staticmethod
+	def menor(a,b):
+		if not PontoFixo.igual(a,b) and not PontoFixo.maior(a,b):
+			return True
+		return False
 def bitsToLimite(bits):
 	valorMaximo = 2**bits
 	string = str(valorMaximo)
@@ -136,15 +202,37 @@ def comprimento(numero):
 	return len(str(numero))
 
 def teste():
-	# ent = str(raw_input('Entre com o valor:\n'))
+	op = 5
+	while op != 0:
+		print("1)Soma\n2)Subtracao\n3)Multiplicacao\n4)Multiplicacao arredondada\n5)Divisao\n6)Resto da divisao(mod ou %)\n0)Sair")
+		op = int(raw_input("Entre com a operacao desejada:\n"))
+		if op <= 6:
+			if op > 0:
+				ponto1 = PontoFixo.strToPontoFixo(str(raw_input("Entro com o primeiro ponto fixo:\n")))
+				ponto2 = PontoFixo.strToPontoFixo(str(raw_input("Entro com o segundo ponto fixo:\n")))
+				ponto3 = PontoFixo(0,0)
+				if op == 1:
+					ponto3 = ponto1 + ponto2
+				else:
+					if op == 2:
+						ponto3 = ponto1 - ponto2
+					else:
+						if op == 3:
+							ponto3 = ponto1 * ponto2
+						else:
+							if op == 4:
+								ponto3  = PontoFixo.mulArredondada( ponto1, ponto2)
+							else:
+								if op == 5:
+									ponto3  = ponto1/ponto2
+								else:
+									if op == 6:
+										ponto3  = ponto1%ponto2
+				print("resultado: "+str(ponto3)+"\n-----------------------------------------------------\n")
+		else:
+			print("Operacao invalida\n")
 
 
-	ponto1 = PontoFixo.strToPontoFixo('2.2')
-	ponto2 = PontoFixo.strToPontoFixo('1.3')
-
-	print(str(ponto1)+"*"+str(ponto2)+"\n")
-	ponto3=ponto1*ponto2
-	print(str(ponto3)+"\n")
 
 if __name__=="__main__":
 	teste()
