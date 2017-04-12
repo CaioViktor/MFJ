@@ -124,6 +124,8 @@ class PontoFixo:
 			parteInteira = PontoFixo(cont,0)
 			multi = parteInteira * b
 			resto = a - multi
+			if PontoFixo.igual(resto,PontoFixo(0,0)):
+				return parteInteira
 			cont = 0
 			while True:
 				pontoAux = PontoFixo(0,cont+1)
