@@ -1,0 +1,5 @@
+I, Me and Myself e essa galerinha:
+
+https://www.w3schools.com/html/html5_canvas.asp
+http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
+http://stackoverflow.com/questions/808826/draw-arrow-on-canvas-tag
