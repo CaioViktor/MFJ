@@ -96,15 +96,22 @@ class PontoFixo:
 		return self.sub(self,b)
 
 	@staticmethod
-	def mul(a,b,precisaoInteria=16,precisaoFracao=10):
+	def mul(a,b,precisaoInteria=16,precisaoFracao=10,arredondar = False):
 		try:
 			acumulador = PontoFixo(0,0,precisaoInteria,precisaoFracao)
 			for i in range(0,b.inteira):
 				acumulador = PontoFixo.add(acumulador,a,precisaoInteria,precisaoFracao)
-			fracoes = ((b.fracao * a.fracao)/bitsToLimite(precisaoFracao)) + b.fracao * a.inteira
-			fracao =PontoFixo(0,fracoes,precisaoInteria,precisaoFracao)
 
-			return acumulador + fracao
+			maximo = bitsToLimite(precisaoFracao)
+			fracoes = ((float(b.fracao)/maximo) * a.inteira) + ((float(b.fracao)/maximo) * (float(a.fracao))/maximo)
+			fracoesStr = str(fracoes)
+			pontoFracao = PontoFixo.strToPontoFixo(fracoesStr,precisaoInteria,precisaoFracao)
+			if arredondar:
+				partes = fracoesStr.split('.')
+				if len(partes) > 1 and len(partes[1]) >= comprimento(maximo) and int(partes[1][comprimento(maximo)-1]) >= 5:
+					pontoFracao = pontoFracao + PontoFixo(0,1)
+
+			return acumulador + pontoFracao
 		except Exception as e:
 			raise e
 
@@ -164,7 +171,7 @@ class PontoFixo:
 	@staticmethod
 	def mulArredondada(a,b,precisaoInteria=16,precisaoFracao=10):
 		try:
-			return (a*b).arredondar()
+			return PontoFixo.mul(a,b,precisaoInteria,precisaoFracao,True)
 		except Exception as e:
 			raise e
 

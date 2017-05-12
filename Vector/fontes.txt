@@ -1,0 +1,4 @@
+fontes:
+https://pt.wikipedia.org/wiki/Produto_vetorial
+https://pt.wikibooks.org/wiki/%C3%81lgebra_linear/Produto_interno
+https://math.stackexchange.com/questions/974178/how-to-calculate-the-angle-between-2-vectors-in-3d-space-given-a-preset-function
