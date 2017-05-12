@@ -1,15 +1,18 @@
+#include <string>
 class Vector{
 	float *values;
 	int dimension;
 public:
+
 	Vector(int dimension, float* values);
 	Vector(float x,float y,float z,float w);
 	Vector(float x,float y,float z);
 	Vector(float x,float y);
-	~Vector();
+	Vector();
 	bool isValidPosition(int position);
 	float getValue(int position);
 	void setValue(int position,float value);
+	int getDimension();
 	Vector operator*(float scalar);
 	Vector operator/(float scalar);
 
@@ -29,4 +32,7 @@ public:
 
 	float angle(Vector vector); // em radianos
 	float angleDegrees(Vector vector); // em graus
+
+	std::string toString();
+	
 };
