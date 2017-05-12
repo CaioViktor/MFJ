@@ -15,8 +15,9 @@ float arcsin(float arc){
 	return asin(arc);
 }
 float arccos(float arc){
+	cout <<"arc: " << arc << endl;
 	if(arc == 0)
-		return 0;
+		return M_PI/2;
 	if(arc >= 1)
 		return M_PI;
 	else if(arc <= -1)
