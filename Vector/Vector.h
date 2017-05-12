@@ -3,6 +3,11 @@ class Vector{
 	float *values;
 	int dimension;
 public:
+	const Vector ONES2();
+	const Vector ONES3();
+	const Vector ONES4();
+	const Vector CANONICAL(int dimension,int axis);
+
 
 	Vector(int dimension, float* values);
 	Vector(float x,float y,float z,float w);
@@ -20,6 +25,7 @@ public:
 	Vector operator-(Vector vector);
 	float operator*(Vector vector);//Produto escalar
 	float operator!();//Norma,Módulo,Grandeza
+
 
 	float cross2(Vector vector);
 	Vector cross3(Vector vector);

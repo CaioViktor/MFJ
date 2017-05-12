@@ -151,8 +151,7 @@ float Vector::angle(Vector vector){ // em radianos
 
 	float angle;
 	if (this->dimension == 4){//não usei o switch porque já tive problemas em que bugava com ele.
-		//TODO:
-		throw std::invalid_argument( "operacao nao implementada" );
+		angle = arccos((*this * vector)/!(*this) * !vector);
 	}else if(this->dimension == 3){
 		angle = arccos((*this * vector)/!(*this) * !vector);
 	}else{
@@ -171,4 +170,26 @@ std::string Vector::toString(){
 	for(int i= 1 ; i<dimension ; i++)
 		text += "," + std::to_string(getValue(i));
 	return text+")";
+}
+
+const Vector Vector::ONES2(){
+	return Vector(1.0f,1.0f);
+}
+const Vector Vector::ONES3(){
+	return Vector(1.0f,1.0f,1.0f);
+}
+const Vector Vector::ONES4(){
+	return Vector(1.0f,1.0f,1.0f,1.0f);
+}
+
+const Vector Vector::CANONICAL(int dimension,int axis){
+	if(!(dimension >= 1 && axis < dimension && axis >= 0))
+		throw std::invalid_argument( "operacao invalida" );
+	float values[dimension];
+	for(int i = 0; i < dimension ; i++)
+		if(i == axis)
+			values[i] = 1;
+		else
+			values[i] = 0;
+	return Vector(dimension,values);
 }

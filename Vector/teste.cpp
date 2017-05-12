@@ -69,5 +69,41 @@ int main(){
 	cout << "angulo entre v4 e v5 "<<v4.angle(v5) << endl;
 	cout << "angulo entre v5 e v4 "<<v5.angle(v4) << endl;
 	cout << "angulo graus entre v4 e v5 "<<v4.angleDegrees(v5) << endl;
+
+
+
+
+
+	cout << "----------------------------------------R⁴---------------------------------------\n";
+
+	Vector v7 = Vector(9.0f,3.0f,1.0f,1.0f);
+	// Vector v7 = Vector(3.0f,0.0f);
+	Vector v8 = Vector(-3.0f,9.0f,-1.0f,-1.0f);
+
+	cout << "v7: " << v7.toString() <<"\n";
+	cout << "v8: " << v8.toString()<<"\n";
+	Vector v9 = v7 * 2;
+	cout << "mul 2: " << v9.toString()<<"\n";
+	v9 = v7 / 2;
+	cout << "div 2: " << v9.toString()<<"\n";
+	v9 = v7 + v8;
+	cout << "soma: " << v9.toString()<<"\n";
+	v9 = v7 - v8;
+	cout << "sub: " << v9.toString()<<"\n";
+
+	cout << "magnitude: " << !v7<<endl;
+	cout <<"distancia de " << v8.toString() << " para " << v7.toString() << " = " << v8.distance(v7)<<endl;
+	cout << v7.toString()<< " normalizado = " << v7.normalize().toString() << endl;
+
+	
+	cout << "escalar <v7*v8>: " << v7*v8 <<"\n";
+	// v9 = v7.cross3(v8);
+	// cout << "interno v7Xv8: " << v9.toString()<<"\n";
+
+	v9 = v7.projection(v8);
+	cout << "projeção v7 sobre v8: " << v9.toString()<<"\n";
+	cout << "angulo entre v7 e v8 "<<v7.angle(v8) << endl;
+	cout << "angulo entre v8 e v7 "<<v8.angle(v7) << endl;
+	cout << "angulo graus entre v7 e v8 "<<v7.angleDegrees(v8) << endl;
 	return 0;
 }
