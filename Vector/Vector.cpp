@@ -15,7 +15,7 @@ float arcsin(float arc){
 	return asin(arc);
 }
 float arccos(float arc){
-	cout <<"arc: " << arc << endl;
+	// cout <<"arc: " << arc << endl;
 	if(arc == 0)
 		return M_PI/2;
 	if(arc >= 1)
@@ -53,8 +53,15 @@ Vector::Vector(float x,float y){
 	this->values[0] = x;
 	this->values[1] = y;
 }
-Vector::Vector(){
-	
+Vector::Vector(){// Por padrão será criado o vetor nulo de R²
+	this->dimension = 2;
+	this->values = new float[2];
+	this->values[0] = 0;
+	this->values[1] = 0;
+}
+Vector::~Vector(){
+	// if(values != NULL)
+	// 	delete values;
 }
 
 bool Vector::isValidPosition(int position){
@@ -85,6 +92,18 @@ Vector Vector::operator*(float scalar){
 }
 Vector Vector::operator/(float scalar){
 	return *this * (1/scalar);
+}
+
+
+Vector Vector::operator=(Vector vector){
+	if(this != &vector){
+		this->dimension = vector.dimension;
+		float* values = new float[this->dimension];
+		for(int i = 0;i<this->dimension;i++)
+			values[i] = vector.getValue(i);
+		this->values = values;
+	}
+	return *this;
 }
 
 Vector Vector::operator+(Vector vector){
@@ -149,22 +168,76 @@ float Vector::angle(Vector vector){ // em radianos
 		throw std::invalid_argument( "nao foi passdo vetor de mesma dimensao" );
 	if(this->dimension > 4 || this->dimension < 2)
 		throw std::invalid_argument( "esta operacao nao foi implementada para esta dimensao" );
-
+	Vector v1 = this->normalize();
+	Vector v2 = vector.normalize();
 	float angle;
-	if (this->dimension == 4){//não usei o switch porque já tive problemas em que bugava com ele.
-		angle = arccos((*this * vector)/!(*this) * !vector);
-	}else if(this->dimension == 3){
-		angle = arccos((*this * vector)/!(*this) * !vector);
+	if (v1.dimension == 4){//não usei o switch porque já tive problemas em que bugava com ele.
+		angle = arccos((v1 * v2)/!v1 * !v2);
+	}else if(v1.dimension == 3){
+		angle = arccos((v1 * v2)/!v1 * !v2);
 	}else{
-		Vector cross  = Vector(this->getValue(0),this->getValue(1),0).cross3(Vector(vector.getValue(0),vector.getValue(1),0));
+		Vector cross  = Vector(v1.getValue(0),v1.getValue(1),0).cross3(Vector(v2.getValue(0),v2.getValue(1),0));
 		float z = cross.getValue(2);
-		angle = arcsin(z/(!(*this) * !vector));
+		angle = arcsin(z/(!v1 * !v2));
 	}
 	return angle;
 }
 float Vector::angleDegrees(Vector vector){ // em graus
 	return 180 * this->angle(vector)/M_PI;
 }
+
+
+
+float Vector::pseudAngle(){
+	if(this->dimension != 2)
+		throw std::invalid_argument( "esta operacao nao foi implementada para esta dimensao" );
+	
+	float x , y;
+	x = this->getValue(0);
+	y = this->getValue(1);
+	if(x == y && x == 0)
+		throw std::invalid_argument( "PseudoAngulo de um vetor nulo...Isso é embaraçoso, mas nao me programaram para isso\n" );
+
+	float result = 0;
+
+	if(x >= 0 && y >= 0 && x>=y){//1ºoctante
+		result = y/x;
+	}else if(x >= 0 && y >= 0 && x<y){//2ºoctante
+		result = 2 - x/y;
+	}else if(x < 0 && y >= 0 && (-1*x)<=y){//3ºoctante
+		result = 2 + (-1*x)/y;
+	}else if(x < 0 && y >= 0 && (-1*x)>y){//4ºoctante
+		result = 4 - y/(-1*x);
+	}else if(x < 0 && y < 0 && x<=y){//5ºoctante
+		result = 4 + (-1*y)/(-1*x);
+	}else if(x < 0 && y < 0 && x>y){//6ºoctante
+		result = 6 - (-1*x)/(-1*y);
+	}else if(x >= 0 && y < 0 && x <= (-1*y)){//7ºoctante
+		result = 6 + x/(-1*y);
+	}else if(x>= 0 && y < 0 && x>(-1*y)){//8ºoctante
+		result = 8 - (-1*y)/x;
+	}
+
+	if(result < 0 || result>=8)
+		result = 0;
+	return result;
+}
+
+
+float Vector::pseudAngle(Vector vector){
+	if(this->dimension != vector.dimension)
+		throw std::invalid_argument( "nao foi passdo vetor de mesma dimensao" );
+	if(this->dimension > 2 || this->dimension < 2)
+		throw std::invalid_argument( "esta operacao nao foi implementada para esta dimensao" );
+	try{
+		float result = this->pseudAngle() - vector.pseudAngle();
+		if(result < 0 || result>=8)
+			result = 0;
+		return result;
+		
+	}catch( ... ){};
+}
+
 
 std::string Vector::toString(){
 	std::string text = "(" + std::to_string(getValue(0));

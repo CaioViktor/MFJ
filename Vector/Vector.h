@@ -14,6 +14,7 @@ public:
 	Vector(float x,float y,float z);
 	Vector(float x,float y);
 	Vector();
+	~Vector();
 	bool isValidPosition(int position);
 	float getValue(int position);
 	void setValue(int position,float value);
@@ -21,6 +22,7 @@ public:
 	Vector operator*(float scalar);
 	Vector operator/(float scalar);
 
+	Vector operator=(Vector vector);
 	Vector operator+(Vector vector);
 	Vector operator-(Vector vector);
 	float operator*(Vector vector);//Produto escalar
@@ -38,6 +40,10 @@ public:
 
 	float angle(Vector vector); // em radianos
 	float angleDegrees(Vector vector); // em graus
+
+	float pseudAngle();
+
+	float pseudAngle(Vector vector);
 
 	std::string toString();
 	

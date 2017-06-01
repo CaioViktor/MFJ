@@ -1,4 +1,5 @@
 #include "Vector.h"
+#include <stdexcept>
 #include <iostream>
 using namespace std;
 int main(){
@@ -105,5 +106,64 @@ int main(){
 	cout << "angulo entre v7 e v8 "<<v7.angle(v8) << endl;
 	cout << "angulo entre v8 e v7 "<<v8.angle(v7) << endl;
 	cout << "angulo graus entre v7 e v8 "<<v7.angleDegrees(v8) << endl;
+
+
+
+
+	cout << "----------------------------------------Pseudo-Angulo---------------------------------------\n";
+
+	Vector p[4];
+	p[0] = Vector(1.0f,1.0f);
+	p[1] = Vector(-1.0f,1.0f);
+	p[2] = Vector(-1.0f,-1.0f);
+	p[3] = Vector(1.0f,-1.0f);
+	
+
+	string l[4];
+	l[0] = "+X";
+	l[1] = "+Y";
+	l[2] = "-X";
+	l[3] = "-Y";
+
+	Vector p2[4];
+	p2[0] = Vector(1.0f,0.0f);//+X
+	p2[1] = Vector(0.0f,1.0f);//+Y
+	p2[2] = Vector(-1.0f,0.0f);//-X
+	p2[3] = Vector(0.0f,-1.0f);//-Y
+	
+	for(int i = 0 ; i < 4 ; i++)
+		cout << "P" << i << " : " << p[i].toString() << endl;
+	for(int i = 0 ; i < 4 ; i++)
+		cout  << l[i] << " : " << p2[i].toString() << endl;
+
+
+	for(int i = 0 ; i < 4 ; i++)
+		cout << "P" << i << " : " << p[i].pseudAngle() << endl;
+	
+	cout << endl;
+
+	for(int i = 0 ; i < 4 ; i++)
+		cout  << l[i] << " : " << p2[i].pseudAngle() << endl;
+
+	for(int i = 0 ; i < 4 ; i++)
+		cout  << "P"<< i << " - " << l[3-i] << " : " << p[i].pseudAngle(p2[3-i]) << endl;
+
+
+
+	Vector c1 = Vector(0.005f, 0.01f);
+	Vector c2 = Vector(1.0f,2.0f);
+	cout << "C1 : " << c1.toString() << endl;
+	cout << "C2 : " << c2.toString() << endl;
+	cout  << "C2 - C1 : " << c2.pseudAngle(c1) << endl;	
+	cout  << "C1 - C2 : " << c1.pseudAngle(c2) << endl;	
+
+	Vector n = Vector();
+	cout << "n: " << n.toString() << endl;
+	try{
+		cout  << "n: " << n.pseudAngle() << endl;	
+		
+	}catch(const std::invalid_argument& e){
+		cout << "deu erro: " << e.what();
+	}
 	return 0;
 }
