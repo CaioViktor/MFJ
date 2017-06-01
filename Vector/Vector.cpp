@@ -98,10 +98,8 @@ Vector Vector::operator/(float scalar){
 Vector Vector::operator=(Vector vector){
 	if(this != &vector){
 		this->dimension = vector.dimension;
-		float* values = new float[this->dimension];
 		for(int i = 0;i<this->dimension;i++)
-			values[i] = vector.getValue(i);
-		this->values = values;
+			this->values[i] = vector.getValue(i);
 	}
 	return *this;
 }
