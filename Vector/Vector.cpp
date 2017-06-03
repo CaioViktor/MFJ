@@ -265,3 +265,7 @@ const Vector Vector::CANONICAL(int dimension,int axis){
 			values[i] = 0;
 	return Vector(dimension,values);
 }
+
+std::ostream& operator<<(std::ostream &strm, Vector &a){
+	return strm << a.toString();
+}

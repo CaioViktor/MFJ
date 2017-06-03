@@ -3,10 +3,10 @@ class Vector{
 	float *values;
 	int dimension;
 public:
-	const Vector ONES2();
-	const Vector ONES3();
-	const Vector ONES4();
-	const Vector CANONICAL(int dimension,int axis);
+	const static Vector ONES2();
+	const static Vector ONES3();
+	const static Vector ONES4();
+	const static Vector CANONICAL(int dimension,int axis);
 
 
 	Vector(int dimension, float* values);
@@ -46,5 +46,6 @@ public:
 	float pseudAngle(Vector vector);
 
 	std::string toString();
+	friend std::ostream& operator<<(std::ostream &strm, Vector &a);
 	
 };
