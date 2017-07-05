@@ -448,6 +448,22 @@ class Matrix{
 		return v;
 	}
 }
+function convexHull(){
+	
+}
 
+function leftmostPoint(points){
+	var leftmost = null;
+	var xmin = Number.MAX_VALUE;
+	for( var i in points)
+		if(points[i].x < xmin){
+			xmin = points[i].xmin;
+			leftmost = points[i];
+		}
+	return leftmost;
+}
+
+http://www.geeksforgeeks.org/orientation-3-ordered-points/
+http://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
 
 
