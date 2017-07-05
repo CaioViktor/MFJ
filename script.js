@@ -98,56 +98,64 @@ class AABB{
 class OBB{
 	constructor(points){
 		this.points = points;
-		var cx = 0;
-		var cy = 0;
+		// var cx = 0;
+		// var cy = 0;
 
-		this.Xmin = Number.MAX_VALUE;
-		this.Ymin = Number.MAX_VALUE;
-		this.Xmax = Number.MIN_VALUE;
-		this.Ymax = Number.MIN_VALUE;
+		// this.Xmin = Number.MAX_VALUE;
+		// this.Ymin = Number.MAX_VALUE;
+		// this.Xmax = Number.MIN_VALUE;
+		// this.Ymax = Number.MIN_VALUE;
 
-		for(var i in points){
-			cx+=points[i].x;
-			cy+=points[i].y;
-			this.Xmin = Math.min(this.Xmin,points[i].x);
-			this.Ymin = Math.min(this.Ymin,points[i].y);
-			this.Xmax = Math.max(this.Xmax,points[i].x);
-			this.Ymax = Math.max(this.Ymax,points[i].y);
-		}
-		cx/=points.length;
-		cy/=points.length;
-		this.center = new Point(cx,cy,null);
-		var c = new Matrix(2,1);
-		c.setValue(0,0,cx);
-		c.setValue(1,0,cy);
-		this.covariance = new Matrix(2,2);
-		for(var i in points){
-			var m1 = points[i].toVector().sumMatrix(c.mul(-1));
-			var m2 = m1.transpose();
-			this.covariance = this.covariance.sumMatrix(m1.multMatrix(m2));
-		}
+		// for(var i in points){
+		// 	cx+=points[i].x;
+		// 	cy+=points[i].y;
+		// 	this.Xmin = Math.min(this.Xmin,points[i].x);
+		// 	this.Ymin = Math.min(this.Ymin,points[i].y);
+		// 	this.Xmax = Math.max(this.Xmax,points[i].x);
+		// 	this.Ymax = Math.max(this.Ymax,points[i].y);
+		// }
+		// cx/=points.length;
+		// cy/=points.length;
+		// this.center = new Point(cx,cy,null);
+		// var c = new Matrix(2,1);
+		// c.setValue(0,0,cx);
+		// c.setValue(1,0,cy);
+		// this.covariance = new Matrix(2,2);
+		// for(var i in points){
+		// 	var m1 = points[i].toVector().sumMatrix(c.mul(-1));
+		// 	var m2 = m1.transpose();
+		// 	this.covariance = this.covariance.sumMatrix(m1.multMatrix(m2));
+		// }
 
-		var ava = this.covariance.eigenvalues();
-		// console.log(ava);
-		var axisX = this.covariance.eigenvector(ava[0]);
-		var axisY = this.covariance.eigenvector(ava[1]);
+		// var ava = this.covariance.eigenvalues();
+		// // console.log(ava);
+		// var axisX = this.covariance.eigenvector(ava[0]);
+		// var axisY = this.covariance.eigenvector(ava[1]);
 
-		this.axis = new Matrix(2,2);
-		this.axis.setValue(0,0,axisX.getValue(0,0));
-		this.axis.setValue(0,1,axisY.getValue(0,0));
-		this.axis.setValue(1,0,axisX.getValue(1,0));
-		this.axis.setValue(1,1,axisY.getValue(1,0));
+		// this.axis = new Matrix(2,2);
+		// this.axis.setValue(0,0,axisX.getValue(0,0));
+		// this.axis.setValue(0,1,axisY.getValue(0,0));
+		// this.axis.setValue(1,0,axisX.getValue(1,0));
+		// this.axis.setValue(1,1,axisY.getValue(1,0));
 
-		var axisTrans = this.axis.transpose();
-		for(var i in points){
-			console.log("foi");
-			var p = axisTrans.multMatrix(points[i].toVector());
-			var np = new Point(p.getValue(0,0),p.getValue(1,0),points[i].canvas);
-			test.push(np);
-		}
-		var aabb = new AABB(test);
-		objects.push(aabb);
-		
+		// var axisTrans = this.axis.transpose();
+		// for(var i in points){
+		// 	console.log("foi");
+		// 	var p = axisTrans.multMatrix(points[i].toVector());
+		// 	var np = new Point(p.getValue(0,0),p.getValue(1,0),points[i].canvas);
+		// 	test.push(np);
+		// }
+		// var aabb = new AABB(test);
+		// objects.push(aabb);
+		var leftmost = leftmostPoint(this.points);		
+		var current = leftmost;
+		var hull = [];
+
+		do{
+			hull.push(current);
+			var candidate ;
+
+		}while(current != leftmost);
 	}
 
 	draw(){
@@ -457,13 +465,23 @@ function leftmostPoint(points){
 	var xmin = Number.MAX_VALUE;
 	for( var i in points)
 		if(points[i].x < xmin){
-			xmin = points[i].xmin;
+			xmin = points[i].x;
 			leftmost = points[i];
 		}
 	return leftmost;
 }
 
-http://www.geeksforgeeks.org/orientation-3-ordered-points/
-http://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
+function orientation(p1,p2,p3){
+	var slope1 = (p2.y - p1.y)/(p2.x - p1.x);
+	var slope2 = (p3.y - p2.y)/(p3.x - p2.x);
+	if(slope1 < slope2)
+		return 0;//antihorario
+	if(slope1 == slope2)
+		return 1;//colinear
+	return 2; //horario
 
+}
+
+// http://www.geeksforgeeks.org/orientation-3-ordered-points/
+// http://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
 
