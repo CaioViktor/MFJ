@@ -147,15 +147,18 @@ class OBB{
 		// }
 		// var aabb = new AABB(test);
 		// objects.push(aabb);
-		var leftmost = leftmostPoint(this.points);		
-		var current = leftmost;
-		var hull = [];
+		// var ps = [];
+		// ps.push(new Point(0, 3));
+		// ps.push(new Point(2, 2));
+		// ps.push(new Point(1, 1));
+		// ps.push(new Point(2, 1));
+		// ps.push(new Point(3, 0));
+		// ps.push(new Point(0, 0));
+		// ps.push(new Point(3, 3));
 
-		do{
-			hull.push(current);
-			var candidate ;
-
-		}while(current != leftmost);
+		// alert(orientation(points[0],points[1],points[2]));
+		var hull = convexHull(this.points);
+		drawPolygon(hull);
 	}
 
 	draw(){
@@ -315,12 +318,12 @@ function createAABB(){
 
 function createOBB(){
 	var obb = new OBB(tempPoints);
-	for(var i in objects)
-		if(obb.detectCollision(objects[i]))
-			alert("colisão com "+i);
-	objects.push(obb);
-	drawCanvas();
-	setTemps();
+	// for(var i in objects)
+	// 	if(obb.detectCollision(objects[i]))
+	// 		alert("colisão com "+i);
+	// objects.push(obb);
+	// drawCanvas();
+	// setTemps();
 }
 function createSphere(){
 	var sphere = new Sphere(tempPoints);
@@ -370,8 +373,71 @@ function reset(){
 }
 
 
+function convexHull(points){
+	console.log(points);
+	var leftmost = leftmostPoint(points);		
+	var current = leftmost;
+	var hull = [];
 
-class Matrix{
+	do{
+		console.log("foi");
+		hull.push(current);
+		var candidate = points[0];
+		for(var i in points)
+			if(candidate == current || (orientation(current,candidate,points[i]) == 2)){
+				candidate = points[i];
+			}
+		current = candidate;
+	}while(current != leftmost);
+
+	return hull;
+}
+
+function leftmostPoint(points){
+	var leftmost = null;
+	var xmin = Number.MAX_VALUE;
+	for( var i in points)
+		if(points[i].x < xmin){
+			xmin = points[i].x;
+			leftmost = points[i];
+		}
+	return leftmost;
+}
+
+function orientation(p1,p2,p3){
+	var slope = (p1.y - p2.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p2.y - p3.y);
+ 	if(slope == 0)
+ 		return 0;//colinear
+ 	else if(slope > 0)//horario
+ 		return 1;
+ 	else 
+ 		return 2;//anti
+}
+
+function drawPolygon(points){
+	console.log(points);
+	var contexto = getContext();
+	contexto.beginPath();
+	contexto.moveTo(points[0].x,points[0].y);
+	for(var i = 1; i < points.length;i++)
+		contexto.lineTo(points[i].x,points[i].y);
+	contexto.lineTo(points[0].x,points[0].y);
+	contexto.stroke();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//Classe descontinuada
+class Matrix{// Tentei implementar a OBB pelos auto vetores, mas deu errado, então dessisti de usar essa matriz
 	constructor(rows,collumns){
 		this.rows = rows;
 		this.collumns = collumns;
@@ -456,32 +522,3 @@ class Matrix{
 		return v;
 	}
 }
-function convexHull(){
-	
-}
-
-function leftmostPoint(points){
-	var leftmost = null;
-	var xmin = Number.MAX_VALUE;
-	for( var i in points)
-		if(points[i].x < xmin){
-			xmin = points[i].x;
-			leftmost = points[i];
-		}
-	return leftmost;
-}
-
-function orientation(p1,p2,p3){
-	var slope1 = (p2.y - p1.y)/(p2.x - p1.x);
-	var slope2 = (p3.y - p2.y)/(p3.x - p2.x);
-	if(slope1 < slope2)
-		return 0;//antihorario
-	if(slope1 == slope2)
-		return 1;//colinear
-	return 2; //horario
-
-}
-
-// http://www.geeksforgeeks.org/orientation-3-ordered-points/
-// http://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
-
