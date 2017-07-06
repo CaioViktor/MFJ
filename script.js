@@ -44,6 +44,12 @@ class Point{
 		this.x /= norma;
 		this.y /= norma;
 	}
+	diff(p2){
+		return new Point(p2.x - this.x,p2.y - this.y);
+	}
+	orthogonal(){
+		return new Point(this.y,-this.x);
+	}
 }
 
 //-------------------------------------------------
