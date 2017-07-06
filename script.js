@@ -33,6 +33,17 @@ class Point{
 		var h = p2.y - this.y;
 		return Math.sqrt((w*w) + (h * h));
 	}
+	dot(p2){
+		return this.x * p2.x + this.y * p2.y;
+	}
+	norma(){
+		return Math.sqrt(this.dot(this));
+	}
+	normalize(){
+		var norma = this.norma();
+		this.x /= norma;
+		this.y /= norma;
+	}
 }
 
 //-------------------------------------------------
@@ -427,6 +438,10 @@ function drawPolygon(points,color){
 	contexto.lineTo(points[0].x,points[0].y);
 	contexto.strokeStyle=color;
 	contexto.stroke();
+}
+
+function diff(p1,p2){
+	return new Point(p2.x-p1.x,p2.y-p2.y);
 }
 
 
