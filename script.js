@@ -1,6 +1,6 @@
 var objects = [];
 var tempPoints = [];
-var test = [];
+var hulls = [];
 
 
 SIZE_POINT = 1;
@@ -158,18 +158,20 @@ class OBB{
 
 		// alert(orientation(points[0],points[1],points[2]));
 		var hull = convexHull(this.points);
-		drawPolygon(hull);
+		hulls.push(hull);
+		var bestArea = Number.MAX_VALUE;
+
+		this.pointBottomLeft = null;
+		this.pointBottomRight = null;
+		this.pointTopLeft = null;
+		this.pointTopRight = null;
+
+		
+
 	}
 
 	draw(){
-		var contexto = getContext();
-		contexto.beginPath();
-		contexto.moveTo(this.Xmin,this.Ymin);
-		contexto.lineTo(this.Xmin,this.Ymax+SIZE_POINT);//esquerda:baixo para cima, SIZE_POINT do tamanho do ponto
-		contexto.lineTo(this.Xmax+SIZE_POINT,this.Ymax+SIZE_POINT);//baixo:esquerda para direita, SIZE_POINT do tamanho do ponto
-		contexto.lineTo(this.Xmax+SIZE_POINT,this.Ymin);//direita:cima para baixo, SIZE_POINT do tamanho do ponto
-		contexto.lineTo(this.Xmin,this.Ymin);
-		contexto.stroke();
+		// drawPolygon([this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight],"#000000");
 		for(var i in this.points)
 			this.points[i].draw();
 	}
@@ -318,12 +320,12 @@ function createAABB(){
 
 function createOBB(){
 	var obb = new OBB(tempPoints);
-	// for(var i in objects)
-	// 	if(obb.detectCollision(objects[i]))
-	// 		alert("colisão com "+i);
-	// objects.push(obb);
-	// drawCanvas();
-	// setTemps();
+	for(var i in objects)
+		if(obb.detectCollision(objects[i]))
+			alert("colisão com "+i);
+	objects.push(obb);
+	drawCanvas();
+	setTemps();
 }
 function createSphere(){
 	var sphere = new Sphere(tempPoints);
@@ -341,6 +343,8 @@ function drawCanvas(){
 		objects[i].draw();
 	for(var i in tempPoints)
 		tempPoints[i].draw();
+	for(var i in hulls)
+		drawPolygon(hulls[i],"#ff22aa");
 	
 }
 
@@ -380,7 +384,6 @@ function convexHull(points){
 	var hull = [];
 
 	do{
-		console.log("foi");
 		hull.push(current);
 		var candidate = points[0];
 		for(var i in points)
@@ -414,7 +417,7 @@ function orientation(p1,p2,p3){
  		return 2;//anti
 }
 
-function drawPolygon(points){
+function drawPolygon(points,color){
 	console.log(points);
 	var contexto = getContext();
 	contexto.beginPath();
@@ -422,6 +425,7 @@ function drawPolygon(points){
 	for(var i = 1; i < points.length;i++)
 		contexto.lineTo(points[i].x,points[i].y);
 	contexto.lineTo(points[0].x,points[0].y);
+	contexto.strokeStyle=color;
 	contexto.stroke();
 }
 
