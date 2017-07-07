@@ -56,6 +56,7 @@ class Point{
 	negate(){
 		this.x = -this.x;
 		this.y = -this.y;
+		return this;
 	}
 }
 
@@ -228,7 +229,7 @@ class OBB{
 		var rightBottomUp = new Point(0,-1,null);
 		var topLeftRight = new Point(-1,0,null);
 		var bottomLeftRight = new Point(1,0,null);
-		console.log(hull);
+		// console.log(hull);
 		for(var i in hull){
 			var angles = [
 				Math.acos(leftTopDown.dot(edgesDir[leftInd])),
@@ -236,9 +237,9 @@ class OBB{
 				Math.acos(topLeftRight.dot(edgesDir[topInd])),
 				Math.acos(bottomLeftRight.dot(edgesDir[bottomInd]))
 			];
-			console.log(angles);
+			// console.log(angles);
 			var edgeAngleMin = angles.indexOf(Math.min.apply(Math,angles));
-			console.log(edgeAngleMin);
+			// console.log(edgeAngleMin);
 			switch(edgeAngleMin){
 				case 0://left
 					leftTopDown = edgesDir[leftInd].clone();
@@ -270,27 +271,42 @@ class OBB{
 					bottomInd = (bottomInd+1)%hull.length;
 				break;
 			}
-			console.log("saiu");
-			console.log(leftTopDown);
-			console.log(rightBottomUp);
-			console.log(bottomLeftRight);
-			console.log(topLeftRight);
+			// console.log("saiu");
+			// console.log(leftTopDown);
+			// console.log(rightBottomUp);
+			// console.log(bottomLeftRight);
+			// console.log(topLeftRight);
 
-			console.log("vai atualizar");
-			this.updateOBB(hull[leftInd],leftInd,hull[rightInd],rightInd,hull[topInd],topInd,hull[bottomInd],bottomInd);
+			// console.log("vai atualizar");
+			this.updateOBB(hull[leftInd],leftTopDown,hull[rightInd],rightBottomUp,hull[topInd],topLeftRight,hull[bottomInd],bottomLeftRight);
 		}
-		console.log(this);
+		// console.log(this);
 	}
 	updateOBB(leftStart,leftDir,rightStart,rightDir,topStart,topDir,bottomStart,bottomDir){
+		// console.log("arestas:")
+		// console.log(leftStart);
+		// console.log(leftDir);
+		// console.log(rightStart);
+		// console.log(rightDir);
+		// console.log(topStart);
+		// console.log(topDir);
+		// console.log(bottomStart);
+		// console.log(bottomDir);
 		var obbUpperLeft = IntersectionLines(leftStart,leftDir,topStart,topDir);
 		var obbUpperRight = IntersectionLines(rightStart,rightDir,topStart,topDir);
 		var obbBottomLeft = IntersectionLines(bottomStart,bottomDir,leftStart,leftDir);
 		var obbBottomRight = IntersectionLines(bottomStart,bottomDir,rightStart,rightDir);
 
+		// console.log("obbs");
+		// console.log(obbUpperLeft);
+		// console.log(obbUpperRight);
+		// console.log(obbBottomLeft);
+		// console.log(obbBottomRight);
 		var distLR = obbUpperLeft.distance(obbUpperRight);
 		var distTB = obbUpperLeft.distance(obbBottomLeft);
 
 		var area = distLR * distTB;
+		// console.log("area: "+area);
 		if(area < this.bestArea){
 			this.bestArea = area;
 			this.pointBottomLeft = obbBottomLeft;
