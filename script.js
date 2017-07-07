@@ -45,10 +45,17 @@ class Point{
 		this.y /= norma;
 	}
 	diff(p2){
-		return new Point(p2.x - this.x,p2.y - this.y);
+		return new Point(p2.x - this.x,p2.y - this.y,this.canvas);
 	}
 	orthogonal(){
-		return new Point(this.y,-this.x);
+		return new Point(this.y,-this.x,this.canvas);
+	}
+	clone(){
+		return new Point(this.x,this.y,this.canvas);
+	}
+	negate(){
+		this.x = -this.x;
+		this.y = -this.y;
 	}
 }
 
@@ -176,19 +183,125 @@ class OBB{
 		// alert(orientation(points[0],points[1],points[2]));
 		var hull = convexHull(this.points);
 		hulls.push(hull);
-		var bestArea = Number.MAX_VALUE;
+		this.bestArea = Number.MAX_VALUE;
 
 		this.pointBottomLeft = null;
 		this.pointBottomRight = null;
 		this.pointTopLeft = null;
 		this.pointTopRight = null;
 
-		
+		var edgesDir = [];
+		for(var i in hull){
+			edgesDir.push(hull[(i+1)%hull.length].diff(hull[i]));
+			edgesDir[i].normalize();
+		}
+	
+		var Xmin = Number.MAX_VALUE;
+		var Ymin = Number.MAX_VALUE;
+		var Xmax = Number.MIN_VALUE;
+		var Ymax = Number.MIN_VALUE;
+		var leftInd = 0;
+		var topInd = 0;
+		var rightInd = 0;
+		var bottomInd = 0;
 
+		for(var i in hull){
+			if(Xmin > hull[i].x){
+				Xmin = 	hull[i].x;
+				leftInd = i;
+			}
+			if(Ymin > hull[i].y){
+				Ymin = 	hull[i].y;
+				topInd = i;
+			}
+			if(Xmax < hull[i].x){
+				Xmax = 	hull[i].x;
+				rightInd = i;
+			}
+			if(Ymax < hull[i].y){
+				Ymax = 	hull[i].y;
+				bottomInd = i;
+			}
+		}
+
+		var leftTopDown = new Point(0,1,null);
+		var rightBottomUp = new Point(0,-1,null);
+		var topLeftRight = new Point(-1,0,null);
+		var bottomLeftRight = new Point(1,0,null);
+		console.log(hull);
+		for(var i in hull){
+			var angles = [
+				Math.acos(leftTopDown.dot(edgesDir[leftInd])),
+				Math.acos(rightBottomUp.dot(edgesDir[rightInd])),
+				Math.acos(topLeftRight.dot(edgesDir[topInd])),
+				Math.acos(bottomLeftRight.dot(edgesDir[bottomInd]))
+			];
+			console.log(angles);
+			var edgeAngleMin = angles.indexOf(Math.min.apply(Math,angles));
+			console.log(edgeAngleMin);
+			switch(edgeAngleMin){
+				case 0://left
+					leftTopDown = edgesDir[leftInd].clone();
+					rightBottomUp = leftTopDown.clone().negate();
+					bottomLeftRight = leftTopDown.orthogonal();
+					topLeftRight = bottomLeftRight.clone().negate();
+					leftInd = (leftInd+1)%hull.length;
+				break;
+				case 1://right
+					rightBottomUp = edgesDir[rightInd].clone();
+					leftTopDown = rightBottomUp.clone().negate();
+					console.log(leftTopDown);
+					bottomLeftRight = leftTopDown.orthogonal();
+					topLeftRight = bottomLeftRight.clone().negate();
+					rightInd = (rightInd+1)%hull.length;
+				break;
+				case 2://top
+					topLeftRight = edgesDir[topInd].clone();
+					bottomLeftRight = topLeftRight.clone().negate();
+					leftTopDown = topLeftRight.orthogonal();
+					rightBottomUp = leftTopDown.clone().negate();
+					topInd = (topInd+1)%hull.length;
+				break;
+				case 3://bottom
+					bottomLeftRight = edgesDir[bottomInd].clone();
+					topLeftRight = bottomLeftRight.clone().negate();
+					rightBottomUp = bottomLeftRight.orthogonal();
+					leftTopDown = rightBottomUp.clone().negate();
+					bottomInd = (bottomInd+1)%hull.length;
+				break;
+			}
+			console.log("saiu");
+			console.log(leftTopDown);
+			console.log(rightBottomUp);
+			console.log(bottomLeftRight);
+			console.log(topLeftRight);
+
+			console.log("vai atualizar");
+			this.updateOBB(hull[leftInd],leftInd,hull[rightInd],rightInd,hull[topInd],topInd,hull[bottomInd],bottomInd);
+		}
+		console.log(this);
+	}
+	updateOBB(leftStart,leftDir,rightStart,rightDir,topStart,topDir,bottomStart,bottomDir){
+		var obbUpperLeft = IntersectionLines(leftStart,leftDir,topStart,topDir);
+		var obbUpperRight = IntersectionLines(rightStart,rightDir,topStart,topDir);
+		var obbBottomLeft = IntersectionLines(bottomStart,bottomDir,leftStart,leftDir);
+		var obbBottomRight = IntersectionLines(bottomStart,bottomDir,rightStart,rightDir);
+
+		var distLR = obbUpperLeft.distance(obbUpperRight);
+		var distTB = obbUpperLeft.distance(obbBottomLeft);
+
+		var area = distLR * distTB;
+		if(area < this.bestArea){
+			this.bestArea = area;
+			this.pointBottomLeft = obbBottomLeft;
+			this.pointBottomRight = obbBottomRight;
+			this.pointTopLeft = obbUpperLeft;
+			this.pointTopRight = obbUpperRight;
+		}
 	}
 
 	draw(){
-		// drawPolygon([this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight],"#000000");
+		drawPolygon([this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight],"#000000");
 		for(var i in this.points)
 			this.points[i].draw();
 	}
@@ -395,7 +508,7 @@ function reset(){
 
 
 function convexHull(points){
-	console.log(points);
+	// console.log(points);
 	var leftmost = leftmostPoint(points);		
 	var current = leftmost;
 	var hull = [];
@@ -435,7 +548,7 @@ function orientation(p1,p2,p3){
 }
 
 function drawPolygon(points,color){
-	console.log(points);
+	// console.log(points);
 	var contexto = getContext();
 	contexto.beginPath();
 	contexto.moveTo(points[0].x,points[0].y);
@@ -446,8 +559,12 @@ function drawPolygon(points,color){
 	contexto.stroke();
 }
 
-function diff(p1,p2){
-	return new Point(p2.x-p1.x,p2.y-p2.y);
+function IntersectionLines(s0,d0,s1,d1){
+	var dd =  d0.x *d1.y - d0.y * d1.x;
+	var dx = s1.x - s0.x;
+	var dy = s1.y - s0.y;
+	var t = (dx *d1.y - dy*d1.x)/dd;
+	return new Point(s0.x + t * d0.x,s0.y + t * d0.y,null);
 }
 
 
