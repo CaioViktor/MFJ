@@ -2,7 +2,6 @@ var objects = [];
 var tempPoints = [];
 var hulls = [];
 
-
 SIZE_POINT = 1;
 //Point
 class Point{
@@ -22,15 +21,27 @@ class Point{
 		this.x+= x;
 		this.y+= y;
 	}
-	toVector(){
+	toVector(){//Matriz coluna
 		var m = new Matrix(2,1);
 		m.setValue(0,0,this.x);
 		m.setValue(1,0,this.y);
 		return m;
 	}
+	toVector2(){//Matriz coluna
+		var m = new Matrix(3,1);
+		m.setValue(0,0,this.x);
+		m.setValue(1,0,this.y);
+		m.setValue(2,0,1);
+		return m;
+	}
 	distance(p2){
 		var w = p2.x - this.x;
 		var h = p2.y - this.y;
+		return Math.sqrt((w*w) + (h * h));
+	}
+	distance2(p2){
+		var w = this.x - p2.x ;
+		var h = this.y - p2.y;
 		return Math.sqrt((w*w) + (h * h));
 	}
 	dot(p2){
@@ -45,7 +56,10 @@ class Point{
 		this.y /= norma;
 	}
 	diff(p2){
-		return new Point(p2.x - this.x,p2.y - this.y,this.canvas);
+		return new Point(p2.x - this.x ,p2.y - this.y ,this.canvas);
+	}
+	diff2(p2){
+		return new Point(this.x - p2.x ,this.y - p2.y ,this.canvas);
 	}
 	orthogonal(){
 		return new Point(this.y,-this.x,this.canvas);
@@ -58,11 +72,26 @@ class Point{
 		this.y = -this.y;
 		return this;
 	}
+	equals(p2){
+		return this.x==p2.x && this.y==p2.y;
+	}
+	project(m){
+		var m1 = m.multMatrix(this.toVector2());	
+		return new Point(m1.getValue(0,0),m1.getValue(1,0),this.canvas);
+
+	}
 }
 
 //-------------------------------------------------
 //Bounding Volume- Não usei a estratégia de herança, pois vi que não trazia nenhuma vantagem
-
+function newAABB(min,max){
+		var aabb = new AABB();
+		aabb.Xmin = min.x; 
+		aabb.Ymin = min.y;
+		aabb.Xmax = max.x;
+		aabb.Ymax = max.y;
+		return aabb;
+	}
 class AABB{
 	constructor(points){
 		this.points = points;
@@ -81,7 +110,7 @@ class AABB{
 			this.Ymax = Math.max(this.Ymax,points[i].y);
 		}
 	}
-
+	
 	draw(){
 		var contexto = getContext();
 		contexto.beginPath();
@@ -112,8 +141,9 @@ class AABB{
 		if(volume instanceof AABB){
 			return volume != this && !(this.Xmax < volume.Xmin || this.Ymax < volume.Ymin || this.Xmin > volume.Xmax || this.Ymin > volume.Ymax);
 		}
-		if(volume instanceof Sphere)
+		if(volume instanceof Sphere || volume instanceof OBB)
 			return volume.detectCollision(this);
+
 		return false;
 	}
 }
@@ -197,30 +227,30 @@ class OBB{
 			edgesDir[i].normalize();
 		}
 	
-		var Xmin = Number.MAX_VALUE;
-		var Ymin = Number.MAX_VALUE;
-		var Xmax = Number.MIN_VALUE;
-		var Ymax = Number.MIN_VALUE;
+		this.Xmin = Number.MAX_VALUE;
+		this.Ymin = Number.MAX_VALUE;
+		this.Xmax = Number.MIN_VALUE;
+		this.Ymax = Number.MIN_VALUE;
 		var leftInd = 0;
 		var topInd = 0;
 		var rightInd = 0;
 		var bottomInd = 0;
 
 		for(var i in hull){
-			if(Xmin > hull[i].x){
-				Xmin = 	hull[i].x;
+			if(this.Xmin > hull[i].x){
+				this.Xmin = hull[i].x;
 				leftInd = i;
 			}
-			if(Ymin > hull[i].y){
-				Ymin = 	hull[i].y;
+			if(this.Ymin > hull[i].y){
+				this.Ymin = hull[i].y;
 				topInd = i;
 			}
-			if(Xmax < hull[i].x){
-				Xmax = 	hull[i].x;
+			if(this.Xmax < hull[i].x){
+				this.Xmax = hull[i].x;
 				rightInd = i;
 			}
-			if(Ymax < hull[i].y){
-				Ymax = 	hull[i].y;
+			if(this.Ymax < hull[i].y){
+				this.Ymax = hull[i].y;
 				bottomInd = i;
 			}
 		}
@@ -229,6 +259,7 @@ class OBB{
 		var rightBottomUp = new Point(0,-1,null);
 		var topLeftRight = new Point(-1,0,null);
 		var bottomLeftRight = new Point(1,0,null);
+		// var p = 1;
 		// console.log(hull);
 		for(var i in hull){
 			var angles = [
@@ -240,37 +271,59 @@ class OBB{
 			// console.log(angles);
 			var edgeAngleMin = angles.indexOf(Math.min.apply(Math,angles));
 			// console.log(edgeAngleMin);
+			// console.log(edgesDir[leftInd]);
+			// console.log(edgesDir[rightInd]);
+			// console.log(edgesDir[bottomInd]);
+			// console.log(edgesDir[topInd]);
+			// console.log("dir:");
+			// console.log(leftTopDown);
+			// console.log(rightBottomUp);
+			// console.log(bottomLeftRight);
+			// console.log(topLeftRight);
 			switch(edgeAngleMin){
 				case 0://left
+					// console.log("left");
 					leftTopDown = edgesDir[leftInd].clone();
 					rightBottomUp = leftTopDown.clone().negate();
 					bottomLeftRight = leftTopDown.orthogonal();
 					topLeftRight = bottomLeftRight.clone().negate();
-					leftInd = (leftInd+1)%hull.length;
+
+						leftInd = (leftInd+1)%hull.length;
+
+
 				break;
 				case 1://right
+				// console.log("right");
 					rightBottomUp = edgesDir[rightInd].clone();
 					leftTopDown = rightBottomUp.clone().negate();
-					console.log(leftTopDown);
+					// console.log(leftTopDown);
 					bottomLeftRight = leftTopDown.orthogonal();
 					topLeftRight = bottomLeftRight.clone().negate();
-					rightInd = (rightInd+1)%hull.length;
+
+						rightInd = (rightInd+1)%hull.length;
+
 				break;
 				case 2://top
+					// console.log("top");
 					topLeftRight = edgesDir[topInd].clone();
 					bottomLeftRight = topLeftRight.clone().negate();
 					leftTopDown = topLeftRight.orthogonal();
 					rightBottomUp = leftTopDown.clone().negate();
-					topInd = (topInd+1)%hull.length;
+						topInd = (topInd+1)%hull.length;
 				break;
 				case 3://bottom
+					// console.log("bottom");
 					bottomLeftRight = edgesDir[bottomInd].clone();
 					topLeftRight = bottomLeftRight.clone().negate();
 					rightBottomUp = bottomLeftRight.orthogonal();
 					leftTopDown = rightBottomUp.clone().negate();
-					bottomInd = (bottomInd+1)%hull.length;
+						bottomInd = (bottomInd+1)%hull.length;
 				break;
 			}
+			// console.log(hull[leftInd]);
+			// console.log(hull[topInd]);
+			// console.log(hull[rightInd]);
+			// console.log(hull[bottomInd]);
 			// console.log("saiu");
 			// console.log(leftTopDown);
 			// console.log(rightBottomUp);
@@ -279,8 +332,30 @@ class OBB{
 
 			// console.log("vai atualizar");
 			this.updateOBB(hull[leftInd],leftTopDown,hull[rightInd],rightBottomUp,hull[topInd],topLeftRight,hull[bottomInd],bottomLeftRight);
+			// // if(p==4){
+			// drawPolygon([this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight],"#000000");
+			// 	break;
+			// }
+			// p+=1;
 		}
 		// console.log(this);
+		var centerX = (this.pointBottomLeft.x + this.pointBottomRight.x + this.pointTopLeft.x + this.pointTopRight.x)/4;
+		var centerY = (this.pointBottomLeft.y + this.pointBottomRight.y + this.pointTopLeft.y + this.pointTopRight.y)/4;
+		this.center = new Point(centerX,centerY,getCanvas());
+		this.matrixTransformation = new Matrix(3,3);
+		this.matrixTransformation.setValue(0,0,bottomLeftRight.x);
+		this.matrixTransformation.setValue(0,1,bottomLeftRight.y);
+		this.matrixTransformation.setValue(0,2,-centerX);
+		this.matrixTransformation.setValue(1,0,rightBottomUp.x);
+		this.matrixTransformation.setValue(1,1,rightBottomUp.y);
+		this.matrixTransformation.setValue(1,2,-centerY);
+		this.matrixTransformation.setValue(2,2,1);
+
+		var min = new Point(this.Xmin,this.Ymin);
+		var max = new Point(this.Xmax,this.Ymax);
+		this.aabb = newAABB(min.project(this.matrixTransformation),max.project(this.matrixTransformation));
+		// console.log(bottomLeftRight);
+		// console.log(rightBottomUp);
 	}
 	updateOBB(leftStart,leftDir,rightStart,rightDir,topStart,topDir,bottomStart,bottomDir){
 		// console.log("arestas:")
@@ -302,12 +377,14 @@ class OBB{
 		// console.log(obbUpperRight);
 		// console.log(obbBottomLeft);
 		// console.log(obbBottomRight);
+
 		var distLR = obbUpperLeft.distance(obbUpperRight);
 		var distTB = obbUpperLeft.distance(obbBottomLeft);
 
+
 		var area = distLR * distTB;
 		// console.log("area: "+area);
-		if(area < this.bestArea){
+		if(area > 0 && area < this.bestArea){
 			this.bestArea = area;
 			this.pointBottomLeft = obbBottomLeft;
 			this.pointBottomRight = obbBottomRight;
@@ -338,6 +415,18 @@ class OBB{
 	detectCollision(volume){
 		if(volume instanceof AABB){
 			return volume != this && !(this.Xmax < volume.Xmin || this.Ymax < volume.Ymin || this.Xmin > volume.Xmax || this.Ymin > volume.Ymax);
+		}
+		if(volume instanceof Sphere){
+			var pointSphera = [];
+			for(var i in volume.points){
+				var po = volume.points[i].project(this.matrixTransformation);
+				pointSphera.push(po);
+			}
+			var ns = new Sphere(pointSphera);
+			console.log(ns);
+
+			console.log(this.aabb);
+			return ns.detectCollision(this.aabb);
 		}
 		return false;
 	}
@@ -417,6 +506,8 @@ class Sphere{
 			var maxRadius = this.radius+volume.radius;
 			return volume != this && distance <= maxRadius;
 		}
+		if(volume instanceof OBB)
+			return volume.detectCollision(this);
 		return false;
 	}
 }
@@ -485,12 +576,12 @@ function createSphere(){
 
 function drawCanvas(){
 	limparTela();
+	for(var i in hulls)
+		drawPolygon(hulls[i],"#ff22aa");
 	for(var i in objects)
 		objects[i].draw();
 	for(var i in tempPoints)
 		tempPoints[i].draw();
-	for(var i in hulls)
-		drawPolygon(hulls[i],"#ff22aa");
 	
 }
 
@@ -580,9 +671,12 @@ function IntersectionLines(s0,d0,s1,d1){
 	var dx = s1.x - s0.x;
 	var dy = s1.y - s0.y;
 	var t = (dx *d1.y - dy*d1.x)/dd;
+	var p1 = new Point(s0.x+d0.x,s0.y+d0.y);
+	var p2 = new Point(s1.x+d1.x,s1.y+d1.y);
+	// console.log("dot:");
+	// console.log(p1.dot(p2));
 	return new Point(s0.x + t * d0.x,s0.y + t * d0.y,null);
 }
-
 
 
 
@@ -679,4 +773,34 @@ class Matrix{// Tentei implementar a OBB pelos auto vetores, mas deu errado, ent
 		v.setValue(1,0,y);
 		return v;
 	}
+}
+
+
+function testar(){
+
+	// var teste = [new Point(179,137,getCanvas()),new Point(205,137,getCanvas()),new Point(188,157,getCanvas()),new Point(207,159,getCanvas())];
+var teste = [new Point(151,122,getCanvas()),new Point(275,76,getCanvas()),new Point(268,170,getCanvas())];
+	var obb = new OBB(teste);
+	objects.push(obb);
+
+	// console.log(obb.matrixTransformation);
+	// //Pontos para espaço de objeto
+	// var p1 = new Point(0,0,getCanvas());
+	// var p2 = new Point(10,0,getCanvas());
+	// var p3 = new Point(-10,0,getCanvas());
+	// var m1 = obb.matrixTransformation.multMatrix(p1.toVector2());
+	// var m2 = obb.matrixTransformation.multMatrix(p2.toVector2());
+	// var m3 = obb.matrixTransformation.multMatrix(p3.toVector2());
+	// var po = new Point(m1.getValue(0,0),m1.getValue(1,0),getCanvas());
+	// tempPoints.push(po);
+	// var po2 = new Point(m2.getValue(0,0),m2.getValue(1,0),getCanvas());
+	// tempPoints.push(po2);
+	// var po3 = new Point(m3.getValue(0,0),m3.getValue(1,0),getCanvas());
+	// tempPoints.push(po3);
+	// console.log(po);
+	// console.log(p1.project(obb.matrixTransformation));
+	// console.log(orientation(po,po2,po3));
+
+
+	drawCanvas();
 }
