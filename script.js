@@ -351,8 +351,8 @@ class OBB{
 		this.matrixTransformation.setValue(1,2,-centerY);
 		this.matrixTransformation.setValue(2,2,1);
 
-		var min = new Point(this.Xmin,this.Ymin);
-		var max = new Point(this.Xmax,this.Ymax);
+		var min = new Point(this.pointBottomLeft.Xmin,this.pointBottomLeft.Ymin);
+		var max = new Point(this.pointTopRight.Xmax,this.pointTopRight.Ymax);
 		this.aabb = newAABB(min.project(this.matrixTransformation),max.project(this.matrixTransformation));
 		// console.log(bottomLeftRight);
 		// console.log(rightBottomUp);
