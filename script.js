@@ -91,46 +91,49 @@ class Point{
 //-------------------------------------------------
 //Bounding Volume- Não usei a estratégia de herança, pois vi que não trazia nenhuma vantagem
 function newAABB(min,max){
-		var aabb = new AABB();
+		var aabb = new AABB(null,true);
 		aabb.Xmin = min.x; 
 		aabb.Ymin = min.y;
 		aabb.Xmax = max.x;
 		aabb.Ymax = max.y;
+		aabb.valid = false;
 		return aabb;
 	}
 class AABB{
-	constructor(points){
+	constructor(points,dummy){
+
 		this.points = points;
 		
-
 		this.Xmin = Number.MAX_VALUE;
 		this.Ymin = Number.MAX_VALUE;
 		this.Xmax = Number.MIN_VALUE;
 		this.Ymax = Number.MIN_VALUE;
 
+		if(!dummy){
 
-		for(var i in this.points){
-			this.Xmin = Math.min(this.Xmin,points[i].x);
-			this.Ymin = Math.min(this.Ymin,points[i].y);
-			this.Xmax = Math.max(this.Xmax,points[i].x);
-			this.Ymax = Math.max(this.Ymax,points[i].y);
+			for(var i in this.points){
+				this.Xmin = Math.min(this.Xmin,points[i].x);
+				this.Ymin = Math.min(this.Ymin,points[i].y);
+				this.Xmax = Math.max(this.Xmax,points[i].x);
+				this.Ymax = Math.max(this.Ymax,points[i].y);
+			}
+			this.pointBottomLeft = new Point(this.Xmin,this.Ymin);
+			this.pointTopLeft = new Point(this.Xmin,this.Ymax);
+			this.pointTopRight = new Point(this.Xmax,this.Ymax);
+			this.pointBottomRight = new Point(this.Xmax,this.Ymin);
+			this.distanceW = this.pointBottomLeft.distance(this.pointBottomRight);
+			this.distanceH = this.pointBottomLeft.distance(this.pointTopLeft);
+			this.corner1 = [this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight];//direita-cima
+
+			this.corner2 = [this.pointBottomRight,this.pointTopRight,this.pointTopLeft,this.pointBottomLeft];//esquerda-cima
+
+
+
+			this.axis1 = computeAxes(this.corner1);
+			this.origin1 = [this.corner1[0].dot(this.axis1[0]),this.corner1[0].dot(this.axis1[1])];
+			this.axis2 = computeAxes(this.corner2);
+			this.origin2 = [this.corner2[0].dot(this.axis2[0]),this.corner2[0].dot(this.axis2[1])];
 		}
-		this.pointBottomLeft = new Point(this.Xmin,this.Ymin);
-		this.pointTopLeft = new Point(this.Xmin,this.Ymax);
-		this.pointTopRight = new Point(this.Xmax,this.Ymax);
-		this.pointBottomRight = new Point(this.Xmax,this.Ymin);
-		this.distanceW = this.pointBottomLeft.distance(this.pointBottomRight);
-		this.distanceH = this.pointBottomLeft.distance(this.pointTopLeft);
-		this.corner1 = [this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight];//direita-cima
-
-		this.corner2 = [this.pointBottomRight,this.pointTopRight,this.pointTopLeft,this.pointBottomLeft];//esquerda-cima
-
-
-
-		this.axis1 = computeAxes(this.corner1);
-		this.origin1 = [this.corner1[0].dot(this.axis1[0]),this.corner1[0].dot(this.axis1[1])];
-		this.axis2 = computeAxes(this.corner2);
-		this.origin2 = [this.corner2[0].dot(this.axis2[0]),this.corner2[0].dot(this.axis2[1])];
 	}
 	
 	draw(){
@@ -372,9 +375,10 @@ class OBB{
 		this.matrixTransformation.setValue(1,2,-centerY);
 		this.matrixTransformation.setValue(2,2,1);
 
-		var min = new Point(this.pointBottomLeft.Xmin,this.pointBottomLeft.Ymin);
-		var max = new Point(this.pointTopRight.Xmax,this.pointTopRight.Ymax);
+		var min = new Point(this.pointBottomLeft.x,this.pointBottomLeft.y);
+		var max = new Point(this.pointTopRight.x,this.pointTopRight.x);
 		this.aabb = newAABB(min.project(this.matrixTransformation),max.project(this.matrixTransformation));
+		console.log(this.aabb);
 
 		// console.log(topLeftRight);
 		// console.log(leftTopDown);
@@ -459,8 +463,7 @@ class OBB{
 				pointSphera.push(po);
 			}
 			var ns = new Sphere(pointSphera);
-			console.log(ns);
-
+			// console.log(ns);
 			console.log(this.aabb);
 			return ns.detectCollision(this.aabb);
 		}
@@ -633,7 +636,7 @@ function limparTela(){
 }
 
 function createAABB(){
-	var aabb = new AABB(tempPoints);
+	var aabb = new AABB(tempPoints,false);
 	for(var i in objects)
 		if(aabb.detectCollision(objects[i]))
 			alert("colisão com "+i);
@@ -758,6 +761,7 @@ function drawPolygon(points,color){
 	contexto.lineTo(points[0].x,points[0].y);
 	contexto.strokeStyle=color;
 	contexto.stroke();
+	contexto.strokeStyle="#000000";
 }
 
 function IntersectionLines(s0,d0,s1,d1){
@@ -870,31 +874,31 @@ class Matrix{// Tentei implementar a OBB pelos auto vetores, mas deu errado, ent
 }
 
 
-function testar(){
+// function testar(){
 
-	// var teste = [new Point(179,137,getCanvas()),new Point(205,137,getCanvas()),new Point(188,157,getCanvas()),new Point(207,159,getCanvas())];
-var teste = [new Point(151,122,getCanvas()),new Point(275,76,getCanvas()),new Point(268,170,getCanvas())];
-	var obb = new OBB(teste);
-	objects.push(obb);
+// 	// var teste = [new Point(179,137,getCanvas()),new Point(205,137,getCanvas()),new Point(188,157,getCanvas()),new Point(207,159,getCanvas())];
+// var teste = [new Point(151,122,getCanvas()),new Point(275,76,getCanvas()),new Point(268,170,getCanvas())];
+// 	var obb = new OBB(teste);
+// 	objects.push(obb);
 
-	// console.log(obb.matrixTransformation);
-	// //Pontos para espaço de objeto
-	// var p1 = new Point(0,0,getCanvas());
-	// var p2 = new Point(10,0,getCanvas());
-	// var p3 = new Point(-10,0,getCanvas());
-	// var m1 = obb.matrixTransformation.multMatrix(p1.toVector2());
-	// var m2 = obb.matrixTransformation.multMatrix(p2.toVector2());
-	// var m3 = obb.matrixTransformation.multMatrix(p3.toVector2());
-	// var po = new Point(m1.getValue(0,0),m1.getValue(1,0),getCanvas());
-	// tempPoints.push(po);
-	// var po2 = new Point(m2.getValue(0,0),m2.getValue(1,0),getCanvas());
-	// tempPoints.push(po2);
-	// var po3 = new Point(m3.getValue(0,0),m3.getValue(1,0),getCanvas());
-	// tempPoints.push(po3);
-	// console.log(po);
-	// console.log(p1.project(obb.matrixTransformation));
-	// console.log(orientation(po,po2,po3));
+// 	// console.log(obb.matrixTransformation);
+// 	// //Pontos para espaço de objeto
+// 	// var p1 = new Point(0,0,getCanvas());
+// 	// var p2 = new Point(10,0,getCanvas());
+// 	// var p3 = new Point(-10,0,getCanvas());
+// 	// var m1 = obb.matrixTransformation.multMatrix(p1.toVector2());
+// 	// var m2 = obb.matrixTransformation.multMatrix(p2.toVector2());
+// 	// var m3 = obb.matrixTransformation.multMatrix(p3.toVector2());
+// 	// var po = new Point(m1.getValue(0,0),m1.getValue(1,0),getCanvas());
+// 	// tempPoints.push(po);
+// 	// var po2 = new Point(m2.getValue(0,0),m2.getValue(1,0),getCanvas());
+// 	// tempPoints.push(po2);
+// 	// var po3 = new Point(m3.getValue(0,0),m3.getValue(1,0),getCanvas());
+// 	// tempPoints.push(po3);
+// 	// console.log(po);
+// 	// console.log(p1.project(obb.matrixTransformation));
+// 	// console.log(orientation(po,po2,po3));
 
 
-	drawCanvas();
-}
+// 	drawCanvas();
+// }
