@@ -376,9 +376,9 @@ class OBB{
 		this.matrixTransformation.setValue(2,2,1);
 
 		var min = new Point(this.pointBottomLeft.x,this.pointBottomLeft.y);
-		var max = new Point(this.pointTopRight.x,this.pointTopRight.x);
+		var max = new Point(this.pointTopRight.x,this.pointTopRight.y);
 		this.aabb = newAABB(min.project(this.matrixTransformation),max.project(this.matrixTransformation));
-		console.log(this.aabb);
+		// console.log(this.aabb);
 
 		// console.log(topLeftRight);
 		// console.log(leftTopDown);
@@ -453,6 +453,7 @@ class OBB{
 	}
 
 	detectCollision(volume){
+		console.log("chamou");
 		if(volume instanceof AABB || volume instanceof OBB){
 			return overlapping(this,volume,1) && overlapping(volume,this,1) && overlapping(this,volume,2) && overlapping(volume,this,2);
 		}
@@ -463,7 +464,7 @@ class OBB{
 				pointSphera.push(po);
 			}
 			var ns = new Sphere(pointSphera);
-			// console.log(ns);
+			console.log(ns);
 			console.log(this.aabb);
 			return ns.detectCollision(this.aabb);
 		}
@@ -529,13 +530,15 @@ class Sphere{
 		this.points = points;
 		
 
-		this.Xmin = Number.MAX_VALUE;
-		this.Ymin = Number.MAX_VALUE;
-		this.Xmax = Number.MIN_VALUE;
-		this.Ymax = Number.MIN_VALUE;
+		this.Xmin = points[0].x;
+		this.Ymin = points[0].y;
+		this.Xmax = points[0].x;
+		this.Ymax = points[0].y;
 		var distance = 0;
 
 		for(var i in this.points){
+			// console.log("xmax:"+this.Xmax);
+			// console.log("x: "+points[i].x);
 			this.Xmin = Math.min(this.Xmin,points[i].x);
 			this.Ymin = Math.min(this.Ymin,points[i].y);
 			this.Xmax = Math.max(this.Xmax,points[i].x);
@@ -547,6 +550,7 @@ class Sphere{
 		this.centerX = this.Xmin + ((this.Xmax - this.Xmin) / 2);
 		this.centerY = this.Ymin + ((this.Ymax - this.Ymin) / 2);
 		this.radius = distance/2;
+		// console.log(this.Xmax);
 	}
 
 	draw(){
