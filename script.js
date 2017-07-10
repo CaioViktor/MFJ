@@ -121,11 +121,16 @@ class AABB{
 		this.pointBottomRight = new Point(this.Xmax,this.Ymin);
 		this.distanceW = this.pointBottomLeft.distance(this.pointBottomRight);
 		this.distanceH = this.pointBottomLeft.distance(this.pointTopLeft);
-		this.corner = [this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight];
-		// this.corner = [this.pointBottomLeft,this.pointBottomRight,this.pointTopRight,this.pointTopLeft];
-		// this.corner = [this.pointTopLeft,this.pointBottomRight,this.pointTopRight,this.pointBottomLeft];
-		this.axis = computeAxes(this);
-		this.origin = [this.corner[0].dot(this.axis[0]),this.corner[0].dot(this.axis[1])];
+		this.corner1 = [this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight];//direita-cima
+
+		this.corner2 = [this.pointBottomRight,this.pointTopRight,this.pointTopLeft,this.pointBottomLeft];//esquerda-cima
+
+
+
+		this.axis1 = computeAxes(this.corner1);
+		this.origin1 = [this.corner1[0].dot(this.axis1[0]),this.corner1[0].dot(this.axis1[1])];
+		this.axis2 = computeAxes(this.corner2);
+		this.origin2 = [this.corner2[0].dot(this.axis2[0]),this.corner2[0].dot(this.axis2[1])];
 	}
 	
 	draw(){
@@ -373,13 +378,19 @@ class OBB{
 
 		// console.log(topLeftRight);
 		// console.log(leftTopDown);
-		this.corner = [this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight];
-		// this.corner = [this.pointBottomLeft,this.pointBottomRight,this.pointTopRight,this.pointTopLeft];
-		// this.corner = [this.pointTopLeft,this.pointBottomRight,this.pointTopRight,this.pointBottomLeft];
+		this.corner1 = [this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight];//direita-cima
+
+		this.corner2 = [this.pointBottomRight,this.pointTopRight,this.pointTopLeft,this.pointBottomLeft];//esquerda-cima
+
+
+		
+
 		this.distanceW = this.pointBottomLeft.distance(this.pointBottomRight);
 		this.distanceH = this.pointBottomLeft.distance(this.pointTopLeft);
-		this.axis = computeAxes(this);
-		this.origin = [this.corner[0].dot(this.axis[0]),this.corner[0].dot(this.axis[1])];
+		this.axis1 = computeAxes(this.corner1);
+		this.origin1 = [this.corner1[0].dot(this.axis1[0]),this.corner1[0].dot(this.axis1[1])];
+		this.axis2 = computeAxes(this.corner2);
+		this.origin2 = [this.corner2[0].dot(this.axis2[0]),this.corner2[0].dot(this.axis2[1])];
 
 	}
 	updateOBB(leftStart,leftDir,rightStart,rightDir,topStart,topDir,bottomStart,bottomDir){
@@ -439,7 +450,7 @@ class OBB{
 
 	detectCollision(volume){
 		if(volume instanceof AABB || volume instanceof OBB){
-			return overlapping(this,volume) && overlapping(volume,this);
+			return overlapping(this,volume,1) && overlapping(volume,this,1) && overlapping(this,volume,2) && overlapping(volume,this,2);
 		}
 		if(volume instanceof Sphere){
 			var pointSphera = [];
@@ -456,10 +467,10 @@ class OBB{
 		return false;
 	}
 }
-function computeAxes(p){
+function computeAxes(corner){
 	// console.log(p);
-	var p1 = p.corner[0].diff(p.corner[1]);
-	var p2 = p.corner[0].diff(p.corner[3]);
+	var p1 = corner[0].diff(corner[1]);
+	var p2 = corner[0].diff(corner[3]);
 	var axis = [];
 	axis.push(p1);
 	axis.push(p2);
@@ -469,16 +480,24 @@ function computeAxes(p){
 	return axis;
 }
 
-function overlapping(p,volume){
+function overlapping(p,volume,eixo){
+	var axis = p.axis1;
+	var corner = volume.corner1;
+	var origin = p.origin1;
+	if(eixo == 2){
+		axis = p.axis2;
+		corner = volume.corner2;
+		origin = p.origin2;
+	}
 	for(var a = 0 ;  a < 2;++a){
-		var t = volume.corner[0].dot(p.axis[a]);
+		var t = corner[0].dot(axis[a]);
 		var tMin = t;
 		var tMax = t;
 		// console.log(t);
 		// console.log(p.origin[a]);
 		for(var c = 1; c < 4; ++c){
 			// console.log(c);
-			t = volume.corner[c].dot(p.axis[a]);
+			t = corner[c].dot(axis[a]);
 			if(t < tMin)
 				tMin = t;
 			else if(t > tMax)
@@ -494,7 +513,7 @@ function overlapping(p,volume){
 			// console.log(distance + p.origin[a]);
 			// console.log(tMax);
 			// console.log(distance);
-		if((tMin > distance + p.origin[a]) || ( tMax < p.origin[a]))
+		if((tMin > distance + origin[a]) || ( tMax < origin[a]))
 			return false;
 		// console.log("fim iiteracao");	
 	}
@@ -684,6 +703,7 @@ function enableButtons(){
 function reset(){
 	objects = [];
 	tempPoints = [];	
+	hulls = [];
 	limparTela();
 }
 
