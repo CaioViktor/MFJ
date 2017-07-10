@@ -39,11 +39,7 @@ class Point{
 		var h = p2.y - this.y;
 		return Math.sqrt((w*w) + (h * h));
 	}
-	distance2(p2){
-		var w = this.x - p2.x ;
-		var h = this.y - p2.y;
-		return Math.sqrt((w*w) + (h * h));
-	}
+
 	dot(p2){
 		return this.x * p2.x + this.y * p2.y;
 	}
@@ -54,6 +50,16 @@ class Point{
 		var norma = this.norma();
 		this.x /= norma;
 		this.y /= norma;
+	}
+	sqrLen(){
+		return this.x * this.x + this.y + this.y;
+	}
+	normalizesqr(){
+		var len = this.sqrLen();
+		if(len == 0)
+			len = 0.0001;
+		this.x /= len;
+		this.y /= len;
 	}
 	diff(p2){
 		return new Point(p2.x - this.x ,p2.y - this.y ,this.canvas);
@@ -109,6 +115,17 @@ class AABB{
 			this.Xmax = Math.max(this.Xmax,points[i].x);
 			this.Ymax = Math.max(this.Ymax,points[i].y);
 		}
+		this.pointBottomLeft = new Point(this.Xmin,this.Ymin);
+		this.pointTopLeft = new Point(this.Xmin,this.Ymax);
+		this.pointTopRight = new Point(this.Xmax,this.Ymax);
+		this.pointBottomRight = new Point(this.Xmax,this.Ymin);
+		this.distanceW = this.pointBottomLeft.distance(this.pointBottomRight);
+		this.distanceH = this.pointBottomLeft.distance(this.pointTopLeft);
+		this.corner = [this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight];
+		// this.corner = [this.pointBottomLeft,this.pointBottomRight,this.pointTopRight,this.pointTopLeft];
+		// this.corner = [this.pointTopLeft,this.pointBottomRight,this.pointTopRight,this.pointBottomLeft];
+		this.axis = computeAxes(this);
+		this.origin = [this.corner[0].dot(this.axis[0]),this.corner[0].dot(this.axis[1])];
 	}
 	
 	draw(){
@@ -143,7 +160,6 @@ class AABB{
 		}
 		if(volume instanceof Sphere || volume instanceof OBB)
 			return volume.detectCollision(this);
-
 		return false;
 	}
 }
@@ -354,8 +370,17 @@ class OBB{
 		var min = new Point(this.pointBottomLeft.Xmin,this.pointBottomLeft.Ymin);
 		var max = new Point(this.pointTopRight.Xmax,this.pointTopRight.Ymax);
 		this.aabb = newAABB(min.project(this.matrixTransformation),max.project(this.matrixTransformation));
-		// console.log(bottomLeftRight);
-		// console.log(rightBottomUp);
+
+		// console.log(topLeftRight);
+		// console.log(leftTopDown);
+		this.corner = [this.pointBottomLeft,this.pointTopLeft,this.pointTopRight,this.pointBottomRight];
+		// this.corner = [this.pointBottomLeft,this.pointBottomRight,this.pointTopRight,this.pointTopLeft];
+		// this.corner = [this.pointTopLeft,this.pointBottomRight,this.pointTopRight,this.pointBottomLeft];
+		this.distanceW = this.pointBottomLeft.distance(this.pointBottomRight);
+		this.distanceH = this.pointBottomLeft.distance(this.pointTopLeft);
+		this.axis = computeAxes(this);
+		this.origin = [this.corner[0].dot(this.axis[0]),this.corner[0].dot(this.axis[1])];
+
 	}
 	updateOBB(leftStart,leftDir,rightStart,rightDir,topStart,topDir,bottomStart,bottomDir){
 		// console.log("arestas:")
@@ -413,8 +438,8 @@ class OBB{
 	}
 
 	detectCollision(volume){
-		if(volume instanceof AABB){
-			return volume != this && !(this.Xmax < volume.Xmin || this.Ymax < volume.Ymin || this.Xmin > volume.Xmax || this.Ymin > volume.Ymax);
+		if(volume instanceof AABB || volume instanceof OBB){
+			return overlapping(this,volume) && overlapping(volume,this);
 		}
 		if(volume instanceof Sphere){
 			var pointSphera = [];
@@ -431,8 +456,51 @@ class OBB{
 		return false;
 	}
 }
+function computeAxes(p){
+	// console.log(p);
+	var p1 = p.corner[0].diff(p.corner[1]);
+	var p2 = p.corner[0].diff(p.corner[3]);
+	var axis = [];
+	axis.push(p1);
+	axis.push(p2);
+	for(var a = 0 ; a < 2 ; ++a){
+		axis[a].normalizesqr();
+	}
+	return axis;
+}
 
+function overlapping(p,volume){
+	for(var a = 0 ;  a < 2;++a){
+		var t = volume.corner[0].dot(p.axis[a]);
+		var tMin = t;
+		var tMax = t;
+		// console.log(t);
+		// console.log(p.origin[a]);
+		for(var c = 1; c < 4; ++c){
+			// console.log(c);
+			t = volume.corner[c].dot(p.axis[a]);
+			if(t < tMin)
+				tMin = t;
+			else if(t > tMax)
+				tMax = t;
+		}
 
+			var distance = Math.max(p.distanceW,p.distanceH);
+			
+			// console.log("p origem");
+			// console.log(p.origin[a]);
+			// console.log("tmin");
+			// console.log(tMin);
+			// console.log(distance + p.origin[a]);
+			// console.log(tMax);
+			// console.log(distance);
+		if((tMin > distance + p.origin[a]) || ( tMax < p.origin[a]))
+			return false;
+		// console.log("fim iiteracao");	
+	}
+	// console.log("fim overlapping");
+	return true;
+}
 
 class Sphere{
 	constructor(points){
@@ -556,6 +624,12 @@ function createAABB(){
 }
 
 function createOBB(){
+	if(tempPoints.length < 3){
+		setTemps();
+		drawCanvas();
+		alert("Para criar uma obb são necessário no mínimo 3 pontos");
+		return;
+	}
 	var obb = new OBB(tempPoints);
 	for(var i in objects)
 		if(obb.detectCollision(objects[i]))
